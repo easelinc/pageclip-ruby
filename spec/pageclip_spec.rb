@@ -14,9 +14,12 @@ describe 'Pageclip' do
       it 'handles unauthorized errors'
       it 'handles rate limit errors'
     end
-    context 'with default configuration' do
+    context 'with default job options' do
       it 'can request with just a url'
       it 'can override a property'
+    end
+    context 'with a logger' do
+      it 'can request with just a url'
     end
   end
 end
