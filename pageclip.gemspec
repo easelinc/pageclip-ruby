@@ -1,11 +1,11 @@
 # -*- encoding: utf-8 -*-
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'pageclip-ruby/version'
+require 'pageclip/version'
 
 Gem::Specification.new do |gem|
-  gem.name          = "pageclip-ruby"
-  gem.version       = Pageclip::Ruby::VERSION
+  gem.name          = "pageclip"
+  gem.version       = Pageclip::VERSION
   gem.authors       = ["Matt Colyer"]
   gem.email         = ["matt@easel.io"]
   gem.description   = %q{A simple interface for the Pageclip screenshot service}

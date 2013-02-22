@@ -1,6 +1,6 @@
+require 'rspec/core/rake_task'
+
 load "Rakefile.base"
 
 desc "Run the tests"
-task :test do
-  abort "You need to define your own test task in Rakefile"
-end
+RSpec::Core::RakeTask.new(:test)
