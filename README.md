@@ -1,6 +1,6 @@
 # pageclip-ruby
 
-A simple gem to interface with pageclip API.
+A simple ruby gem to interface with the Pageclip API.
 
 ## Example
 
