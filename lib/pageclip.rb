@@ -47,6 +47,10 @@ module Pageclip
           http = Net::HTTP.new(uri.host, uri.port)
           request = Net::HTTP::Get.new(uri.request_uri)
           response = http.request(request)
+
+          if response.code == "403"
+            raise Pageclip::UnauthorizedError
+          end
         }
       rescue Timeout::Error
         raise Pageclip::TimeoutError

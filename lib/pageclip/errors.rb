@@ -4,4 +4,7 @@ module Pageclip
 
   class TimeoutError < Error
   end
+
+  class UnauthorizedError < Error
+  end
 end
