@@ -50,6 +50,8 @@ module Pageclip
 
           if response.code == "403"
             raise Pageclip::UnauthorizedError
+          elsif response.code == "429"
+            raise Pageclip::RateLimitedError
           end
         }
       rescue Timeout::Error

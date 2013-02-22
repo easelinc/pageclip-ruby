@@ -48,7 +48,11 @@ describe 'Pageclip' do
           with(:query => {'url' => url, 'api_key' => api_key}).to_return(:status => 403)
         expect { subject.screenshot(url) }.to raise_error(Pageclip::UnauthorizedError)
       end
-      it 'handles rate limit errors'
+      it 'handles rate limit errors' do
+        stub = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
+          with(:query => {'url' => url, 'api_key' => api_key}).to_return(:status => 429)
+        expect { subject.screenshot(url) }.to raise_error(Pageclip::RateLimitedError)
+      end
     end
     context 'with default job options' do
       it 'can request with just a url'

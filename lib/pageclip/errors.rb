@@ -7,4 +7,7 @@ module Pageclip
 
   class UnauthorizedError < Error
   end
+
+  class RateLimitedError < Error
+  end
 end
