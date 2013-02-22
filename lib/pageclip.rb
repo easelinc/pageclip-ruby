@@ -1,5 +1,6 @@
 require 'net/http'
 require 'uri'
+require 'benchmark'
 
 require 'pageclip/version'
 require 'pageclip/configuration'
@@ -32,6 +33,9 @@ module Pageclip
     #   :secret
     #
     def screenshot(url, options={})
+      time = nil
+      response = nil
+
       begin
         Timeout::timeout(@configuration.client_timeout) {
           request_options = @configuration.job_defaults || {}
@@ -46,7 +50,10 @@ module Pageclip
 
           http = Net::HTTP.new(uri.host, uri.port)
           request = Net::HTTP::Get.new(uri.request_uri)
-          response = http.request(request)
+
+          time = Benchmark.realtime do
+            response = http.request(request)
+          end
 
           if response.code == "403"
             raise Pageclip::UnauthorizedError
@@ -56,7 +63,16 @@ module Pageclip
         }
       rescue Timeout::Error
         raise Pageclip::TimeoutError
+      ensure
+        log("[Pageclip #{response ? response.code : '-'} #{time ? time : '?'}s] Requested #{url}")
       end
+    end
+    private
+
+    def log(message)
+      return unless @configuration.logger
+
+      @configuration.logger.info(message)
     end
   end
 end
