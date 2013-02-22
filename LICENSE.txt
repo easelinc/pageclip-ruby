@@ -1,4 +1,4 @@
-Copyright (c) 2013 Matt Colyer
+Copyright (c) 2013 Easel Inc.
 
 MIT License
 
