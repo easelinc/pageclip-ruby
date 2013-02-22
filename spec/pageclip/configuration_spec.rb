@@ -20,4 +20,8 @@ describe 'Pageclip::Configuration' do
     subject.logger = Logger.new(STDOUT)
     subject.logger.should respond_to(:info)
   end
+
+  it 'has the api endpoint set' do
+    subject.api_endpoint.should eq('http://api.pageclip.io')
+  end
 end

@@ -1,3 +1,6 @@
+require 'net/http'
+require 'uri'
+
 require 'pageclip/version'
 require 'pageclip/configuration'
 
@@ -7,8 +10,40 @@ module Pageclip
       yield(configuration)
     end
 
+    # Public: The current configuration for the Pageclip service.
+    #
+    # Returns a Pageclip::Configuration representing the current
+    # configuration.
     def configuration
       @configuration ||= Pageclip::Configuration.new
+    end
+
+    # Public: Requests a screenshot from synchronously.
+    #
+    # options:
+    #   :canvas_width
+    #   :canvas_height
+    #   :viewport_width
+    #   :viewport_height
+    #   :thumbnail_width
+    #   :thumbnail_height
+    #   :timeout
+    #   :secret
+    #
+    def screenshot(url, options={})
+      request_options = @configuration.job_defaults || {}
+      request_options[:api_key] = @configuration.api_key
+      request_options.merge!(options)
+
+      request_options[:url] = url
+
+      uri = URI.parse(@configuration.api_endpoint)
+      uri.path = '/v1/screenshots/'
+      uri.query = request_options.map { |k,v| "#{URI.escape(k.to_s)}=#{URI.escape(v.to_s)}" }.join("&")
+
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTP::Get.new(uri.request_uri)
+      response = http.request(request)
     end
   end
 end
