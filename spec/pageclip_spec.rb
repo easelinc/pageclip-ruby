@@ -29,13 +29,20 @@ describe 'Pageclip' do
         subject.screenshot(url)
         stub.should have_been_requested
       end
+
       it 'can request with a url and options' do
         stub = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
           with(:query => {'url' => url, 'api_key' => api_key, 'secret' => 'a'})
         subject.screenshot(url, :secret => 'a')
         stub.should have_been_requested
       end
-      it 'handles timeouts'
+
+      it 'handles timeouts' do
+        stub = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
+          with(:query => {'url' => url, 'api_key' => api_key}).to_raise(Timeout::Error)
+        expect { subject.screenshot(url) }.to raise_error(Pageclip::TimeoutError)
+      end
+
       it 'handles unauthorized errors'
       it 'handles rate limit errors'
     end

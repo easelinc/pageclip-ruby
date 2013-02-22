@@ -21,7 +21,11 @@ describe 'Pageclip::Configuration' do
     subject.logger.should respond_to(:info)
   end
 
-  it 'has the api endpoint set' do
+  it 'has a default api endpoint' do
     subject.api_endpoint.should eq('http://api.pageclip.io')
+  end
+
+  it 'has a default client timeout' do
+    subject.client_timeout.should eq(61)
   end
 end

@@ -3,6 +3,7 @@ require 'uri'
 
 require 'pageclip/version'
 require 'pageclip/configuration'
+require 'pageclip/errors'
 
 module Pageclip
   class << self
@@ -31,19 +32,25 @@ module Pageclip
     #   :secret
     #
     def screenshot(url, options={})
-      request_options = @configuration.job_defaults || {}
-      request_options[:api_key] = @configuration.api_key
-      request_options.merge!(options)
+      begin
+        Timeout::timeout(@configuration.client_timeout) {
+          request_options = @configuration.job_defaults || {}
+          request_options[:api_key] = @configuration.api_key
+          request_options.merge!(options)
 
-      request_options[:url] = url
+          request_options[:url] = url
 
-      uri = URI.parse(@configuration.api_endpoint)
-      uri.path = '/v1/screenshots/'
-      uri.query = request_options.map { |k,v| "#{URI.escape(k.to_s)}=#{URI.escape(v.to_s)}" }.join("&")
+          uri = URI.parse(@configuration.api_endpoint)
+          uri.path = '/v1/screenshots/'
+          uri.query = request_options.map { |k,v| "#{URI.escape(k.to_s)}=#{URI.escape(v.to_s)}" }.join("&")
 
-      http = Net::HTTP.new(uri.host, uri.port)
-      request = Net::HTTP::Get.new(uri.request_uri)
-      response = http.request(request)
+          http = Net::HTTP.new(uri.host, uri.port)
+          request = Net::HTTP::Get.new(uri.request_uri)
+          response = http.request(request)
+        }
+      rescue Timeout::Error
+        raise Pageclip::TimeoutError
+      end
     end
   end
 end
