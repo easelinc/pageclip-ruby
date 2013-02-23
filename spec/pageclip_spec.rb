@@ -34,7 +34,7 @@ describe 'Pageclip' do
           with(:query => {'url' => url, 'api_key' => api_key}).
           to_return(:status => 302, :headers => { :location => 'http://api.pageclip.io/v1/screenshots/1' })
         result = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/1').
-          to_return(:status => 302, :headers => { :location => 'https://s3.amazonaws.com/bucket/1.png' })
+          to_return(:status => 301, :headers => { :location => 'https://s3.amazonaws.com/bucket/1.png' })
 
         image_url = subject.screenshot(url)
         screenshot.should have_been_requested
@@ -47,7 +47,7 @@ describe 'Pageclip' do
           with(:query => {'url' => url, 'api_key' => api_key, 'secret' => secret}).
           to_return(:status => 302, :headers => { :location => 'http://api.pageclip.io/v1/screenshots/1' })
         result = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/1').
-          to_return(:status => 302, :headers => { :location => 'https://s3.amazonaws.com/bucket/1.png' })
+          to_return(:status => 301, :headers => { :location => 'https://s3.amazonaws.com/bucket/1.png' })
 
         image_url = subject.screenshot(url, :secret => secret)
         screenshot.should have_been_requested
@@ -127,7 +127,7 @@ describe 'Pageclip' do
           with(:query => {'url' => url, 'api_key' => api_key, 'secret' => secret}).
           to_return(:status => 302, :headers => { :location => 'http://api.pageclip.io/v1/screenshots/1' })
         result = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/1').
-          to_return(:status => 302, :headers => { :location => 'https://s3.amazonaws.com/bucket/1.png' })
+          to_return(:status => 301, :headers => { :location => 'https://s3.amazonaws.com/bucket/1.png' })
 
         image_url = subject.screenshot(url)
         screenshot.should have_been_requested
@@ -140,7 +140,7 @@ describe 'Pageclip' do
           with(:query => {'url' => url, 'api_key' => api_key, 'secret' => 'b'}).
           to_return(:status => 302, :headers => { :location => 'http://api.pageclip.io/v1/screenshots/1' })
         result = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/1').
-          to_return(:status => 302, :headers => { :location => 'https://s3.amazonaws.com/bucket/1.png' })
+          to_return(:status => 301, :headers => { :location => 'https://s3.amazonaws.com/bucket/1.png' })
 
         image_url = subject.screenshot(url, :secret => 'b')
         screenshot.should have_been_requested
@@ -177,11 +177,11 @@ describe 'Pageclip' do
           with(:query => {'url' => url, 'api_key' => api_key, 'secret' => 'b'}).
           to_return(:status => 302, :headers => { :location => 'http://api.pageclip.io/v1/screenshots/1' })
         stub_request(:get, 'http://api.pageclip.io/v1/screenshots/1').
-          to_return(:status => 302, :headers => { :location => 'https://s3.amazonaws.com/bucket/1.png' })
+          to_return(:status => 301, :headers => { :location => 'https://s3.amazonaws.com/bucket/1.png' })
 
         subject.screenshot(url, :secret => 'b')
         logger.messages.length.should eq(1)
-        logger.messages[0].should match(/\[Pageclip 302 [0-9\.]+s\] Requested #{url}/)
+        logger.messages[0].should match(/\[Pageclip 301 [0-9\.]+s\] Requested #{url}/)
       end
 
       it 'captures a message on failed response' do
