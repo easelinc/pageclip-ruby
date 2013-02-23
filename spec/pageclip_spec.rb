@@ -80,6 +80,25 @@ describe 'Pageclip' do
         screenshot.should have_been_requested
       end
 
+      it 'handles service unavailable errors' do
+        screenshot = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
+          with(:query => {'url' => url, 'api_key' => api_key}).to_return(:status => 503)
+
+        expect { subject.screenshot(url) }.to raise_error(Pageclip::ServiceUnavailableError)
+        screenshot.should have_been_requested
+      end
+
+      it 'handles service unavailable errors on results' do
+        screenshot = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
+          with(:query => {'url' => url, 'api_key' => api_key}).
+          to_return(:status => 302, :headers => { :location => 'http://api.pageclip.io/v1/screenshots/1' })
+        result = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/1').
+          to_return(:status => 503)
+
+        expect { subject.screenshot(url) }.to raise_error(Pageclip::ServiceUnavailableError)
+        screenshot.should have_been_requested
+      end
+
       it 'handles screenshot errors' do
         screenshot = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
           with(:query => {'url' => url, 'api_key' => api_key}).

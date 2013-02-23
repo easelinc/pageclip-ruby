@@ -51,6 +51,8 @@ module Pageclip
             raise Pageclip::UnauthorizedError
           elsif response.code == "429"
             raise Pageclip::RateLimitedError
+          elsif response.code == "503"
+            raise Pageclip::ServiceUnavailableError
           elsif response.code == "302"
             time += Benchmark.realtime do
               response = get(response['location'])
@@ -59,6 +61,8 @@ module Pageclip
 
           if response.code == "410" || response.code == "202"
             raise Pageclip::ScreenshotError
+          elsif response.code == "503"
+            raise Pageclip::ServiceUnavailableError
           elsif response.code == "302"
             response['location']
           end

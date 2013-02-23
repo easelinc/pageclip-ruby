@@ -13,4 +13,7 @@ module Pageclip
 
   class ScreenshotError < Error
   end
+
+  class ServiceUnavailableError < Error
+  end
 end
