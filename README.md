@@ -23,6 +23,10 @@ rescue Pageclip::UnauthorizedError
   puts 'You don't have a valid API key'
 rescue Pageclip::RateLimitedError
   puts 'Too many requests, wait before trying again'
+rescue Pageclip::ServiceUnavailableError
+  puts 'Somethings wrong, wait before trying again'
+rescue Pageclip::ScreenshotError
+  puts "Somethings wrong with the site you're requesting a screenshot for"
 rescue Pageclip::Error
   puts 'Unknown error'
 end
