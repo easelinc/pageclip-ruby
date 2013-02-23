@@ -63,8 +63,10 @@ module Pageclip
             raise Pageclip::ScreenshotError
           elsif response.code == "503"
             raise Pageclip::ServiceUnavailableError
-          elsif response.code == "302"
+          elsif response.code == "301"
             response['location']
+          else
+            raise Pageclip::Error
           end
         }
       rescue Timeout::Error
