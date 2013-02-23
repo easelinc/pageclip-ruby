@@ -10,4 +10,7 @@ module Pageclip
 
   class RateLimitedError < Error
   end
+
+  class ScreenshotError < Error
+  end
 end

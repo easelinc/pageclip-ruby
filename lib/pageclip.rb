@@ -41,24 +41,26 @@ module Pageclip
           request_options = @configuration.job_defaults || {}
           request_options[:api_key] = @configuration.api_key
           request_options.merge!(options)
-
           request_options[:url] = url
 
-          uri = URI.parse(@configuration.api_endpoint)
-          uri.path = '/v1/screenshots/'
-          uri.query = request_options.map { |k,v| "#{URI.escape(k.to_s)}=#{URI.escape(v.to_s)}" }.join("&")
-
-          http = Net::HTTP.new(uri.host, uri.port)
-          request = Net::HTTP::Get.new(uri.request_uri)
-
           time = Benchmark.realtime do
-            response = http.request(request)
+            response = get("#{@configuration.api_endpoint}/v1/screenshots/", request_options)
           end
 
           if response.code == "403"
             raise Pageclip::UnauthorizedError
           elsif response.code == "429"
             raise Pageclip::RateLimitedError
+          elsif response.code == "302"
+            time += Benchmark.realtime do
+              response = get(response['location'])
+            end
+          end
+
+          if response.code == "410" || response.code == "202"
+            raise Pageclip::ScreenshotError
+          elsif response.code == "302"
+            response['location']
           end
         }
       rescue Timeout::Error
@@ -67,12 +69,23 @@ module Pageclip
         log("[Pageclip #{response ? response.code : '-'} #{time ? time : '?'}s] Requested #{url}")
       end
     end
-    private
 
+  private
     def log(message)
       return unless @configuration.logger
 
       @configuration.logger.info(message)
+    end
+
+    def get(url, query={})
+      uri = URI.parse(url)
+      unless query.empty?
+        uri.query = query.map { |k,v| "#{URI.escape(k.to_s)}=#{URI.escape(v.to_s)}" }.join("&")
+      end
+
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTP::Get.new(uri.request_uri)
+      http.request(request)
     end
   end
 end

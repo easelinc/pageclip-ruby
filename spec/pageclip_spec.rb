@@ -30,36 +30,68 @@ describe 'Pageclip' do
       end
 
       it 'can request with just a url' do
-        stub = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
-          with(:query => {'url' => url, 'api_key' => api_key})
-        subject.screenshot(url)
-        stub.should have_been_requested
+        screenshot = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
+          with(:query => {'url' => url, 'api_key' => api_key}).
+          to_return(:status => 302, :headers => { :location => 'http://api.pageclip.io/v1/screenshots/1' })
+        result = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/1').
+          to_return(:status => 302, :headers => { :location => 'https://s3.amazonaws.com/bucket/1.png' })
+
+        image_url = subject.screenshot(url)
+        screenshot.should have_been_requested
+        result.should have_been_requested
+        image_url.should eq('https://s3.amazonaws.com/bucket/1.png')
       end
 
       it 'can request with a url and options' do
-        stub = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
-          with(:query => {'url' => url, 'api_key' => api_key, 'secret' => secret})
-        subject.screenshot(url, :secret => secret)
-        stub.should have_been_requested
+        screenshot = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
+          with(:query => {'url' => url, 'api_key' => api_key, 'secret' => secret}).
+          to_return(:status => 302, :headers => { :location => 'http://api.pageclip.io/v1/screenshots/1' })
+        result = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/1').
+          to_return(:status => 302, :headers => { :location => 'https://s3.amazonaws.com/bucket/1.png' })
+
+        image_url = subject.screenshot(url, :secret => secret)
+        screenshot.should have_been_requested
+        screenshot.should have_been_requested
+        result.should have_been_requested
+        image_url.should eq('https://s3.amazonaws.com/bucket/1.png')
       end
 
       it 'handles timeouts' do
-        stub = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
+        screenshot = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
           with(:query => {'url' => url, 'api_key' => api_key}).to_raise(Timeout::Error)
+
         expect { subject.screenshot(url) }.to raise_error(Pageclip::TimeoutError)
+        screenshot.should have_been_requested
       end
 
       it 'handles unauthorized errors' do
-        stub = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
+        screenshot = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
           with(:query => {'url' => url, 'api_key' => api_key}).to_return(:status => 403)
+
         expect { subject.screenshot(url) }.to raise_error(Pageclip::UnauthorizedError)
+        screenshot.should have_been_requested
       end
+
       it 'handles rate limit errors' do
-        stub = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
+        screenshot = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
           with(:query => {'url' => url, 'api_key' => api_key}).to_return(:status => 429)
+
         expect { subject.screenshot(url) }.to raise_error(Pageclip::RateLimitedError)
+        screenshot.should have_been_requested
+      end
+
+      it 'handles screenshot errors' do
+        screenshot = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
+          with(:query => {'url' => url, 'api_key' => api_key}).
+          to_return(:status => 302, :headers => { :location => 'http://api.pageclip.io/v1/screenshots/1' })
+        result = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/1').to_return(:status => 410)
+
+        expect { subject.screenshot(url) }.to raise_error(Pageclip::ScreenshotError)
+        screenshot.should have_been_requested
+        result.should have_been_requested
       end
     end
+
     context 'with default job options' do
       before do
         subject.configuration.reset!
@@ -72,17 +104,29 @@ describe 'Pageclip' do
       end
 
       it 'can request with just a url' do
-        stub = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
-          with(:query => {'url' => url, 'api_key' => api_key, 'secret' => secret})
-        subject.screenshot(url)
-        stub.should have_been_requested
+        screenshot = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
+          with(:query => {'url' => url, 'api_key' => api_key, 'secret' => secret}).
+          to_return(:status => 302, :headers => { :location => 'http://api.pageclip.io/v1/screenshots/1' })
+        result = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/1').
+          to_return(:status => 302, :headers => { :location => 'https://s3.amazonaws.com/bucket/1.png' })
+
+        image_url = subject.screenshot(url)
+        screenshot.should have_been_requested
+        result.should have_been_requested
+        image_url.should eq('https://s3.amazonaws.com/bucket/1.png')
       end
 
       it 'can override a property' do
-        stub = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
-          with(:query => {'url' => url, 'api_key' => api_key, 'secret' => 'b'})
-        subject.screenshot(url, :secret => 'b')
-        stub.should have_been_requested
+        screenshot = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
+          with(:query => {'url' => url, 'api_key' => api_key, 'secret' => 'b'}).
+          to_return(:status => 302, :headers => { :location => 'http://api.pageclip.io/v1/screenshots/1' })
+        result = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/1').
+          to_return(:status => 302, :headers => { :location => 'https://s3.amazonaws.com/bucket/1.png' })
+
+        image_url = subject.screenshot(url, :secret => 'b')
+        screenshot.should have_been_requested
+        result.should have_been_requested
+        image_url.should eq('https://s3.amazonaws.com/bucket/1.png')
       end
     end
     context 'with a logger' do
@@ -110,19 +154,22 @@ describe 'Pageclip' do
       }
 
       it 'captures a message on success' do
-        stub = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
-          with(:query => {'url' => url, 'api_key' => api_key, 'secret' => 'b'})
+        stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
+          with(:query => {'url' => url, 'api_key' => api_key, 'secret' => 'b'}).
+          to_return(:status => 302, :headers => { :location => 'http://api.pageclip.io/v1/screenshots/1' })
+        stub_request(:get, 'http://api.pageclip.io/v1/screenshots/1').
+          to_return(:status => 302, :headers => { :location => 'https://s3.amazonaws.com/bucket/1.png' })
+
         subject.screenshot(url, :secret => 'b')
-        stub.should have_been_requested
         logger.messages.length.should eq(1)
-        logger.messages[0].should match(/\[Pageclip 200 [0-9\.]+s\] Requested #{url}/)
+        logger.messages[0].should match(/\[Pageclip 302 [0-9\.]+s\] Requested #{url}/)
       end
 
       it 'captures a message on failed response' do
         stub = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
           with(:query => {'url' => url, 'api_key' => api_key, 'secret' => 'b'}).to_return(:status => 403)
+
         expect { subject.screenshot(url, :secret => 'b') }.to raise_error(Pageclip::UnauthorizedError)
-        stub.should have_been_requested
         logger.messages.length.should eq(1)
         logger.messages[0].should match(/\[Pageclip 403 [0-9\.]+s\] Requested #{url}/)
       end
@@ -130,8 +177,8 @@ describe 'Pageclip' do
       it 'captures a message on exception' do
         stub = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
           with(:query => {'url' => url, 'api_key' => api_key, 'secret' => 'b'}).to_raise(Timeout::Error)
+
         expect { subject.screenshot(url, :secret => 'b') }.to raise_error(Pageclip::TimeoutError)
-        stub.should have_been_requested
         logger.messages.length.should eq(1)
         logger.messages[0].should match(/\[Pageclip - \?+s\] Requested #{url}/)
       end
