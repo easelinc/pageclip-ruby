@@ -31,9 +31,11 @@ describe 'Pageclip' do
 
       it 'can request with just a url' do
         screenshot = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
+          with(:headers => {'User-Agent' => "Pageclip Ruby #{Pageclip::VERSION}"}).
           with(:query => {'url' => url, 'api_key' => api_key}).
           to_return(:status => 302, :headers => { :location => 'http://api.pageclip.io/v1/screenshots/1' })
         result = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/1').
+          with(:headers => {'User-Agent' => "Pageclip Ruby #{Pageclip::VERSION}"}).
           to_return(:status => 301, :headers => { :location => 'https://s3.amazonaws.com/bucket/1.png' })
 
         image_url = subject.screenshot(url)

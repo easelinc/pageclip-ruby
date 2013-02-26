@@ -91,6 +91,7 @@ module Pageclip
 
       http = Net::HTTP.new(uri.host, uri.port)
       request = Net::HTTP::Get.new(uri.request_uri)
+      request['User-Agent'] = "Pageclip Ruby #{VERSION}"
       http.request(request)
     end
   end
