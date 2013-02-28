@@ -55,7 +55,15 @@ module Pageclip
             raise Pageclip::ServiceUnavailableError
           elsif response.code == "302"
             time += Benchmark.realtime do
-              response = get(response['location'])
+              begin
+                response = get(response['location'])
+              rescue EOFError
+                if attempt = ( attempt || 1) and attempt <= 3
+                  Kernel.sleep(attempt)
+                  attempt += 1
+                  retry
+                end
+              end
             end
           end
 

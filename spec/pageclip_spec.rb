@@ -65,6 +65,13 @@ describe 'Pageclip' do
         expect { subject.screenshot(url) }.to raise_error(Pageclip::TimeoutError)
         screenshot.should have_been_requested
       end
+      it 'handles timeouts' do
+        screenshot = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
+          with(:query => {'url' => url, 'api_key' => api_key}).to_raise(Timeout::Error)
+
+        expect { subject.screenshot(url) }.to raise_error(Pageclip::TimeoutError)
+        screenshot.should have_been_requested
+      end
 
       it 'handles unauthorized errors' do
         screenshot = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
@@ -110,6 +117,34 @@ describe 'Pageclip' do
         expect { subject.screenshot(url) }.to raise_error(Pageclip::ScreenshotError)
         screenshot.should have_been_requested
         result.should have_been_requested
+      end
+
+      it 'handles fewer than 3 EOF errors' do
+        screenshot = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
+          with(:query => {'url' => url, 'api_key' => api_key}).
+          to_return(:status => 302, :headers => { :location => 'http://api.pageclip.io/v1/screenshots/1' })
+        result = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/1').
+          to_raise(EOFError).then.to_return(:status => 301, :headers => { :location => 'http://s3.amazonaws.com/bucket/1.png' })
+        Kernel.should_receive(:sleep).with(1)
+
+        subject.screenshot(url).should eq('http://s3.amazonaws.com/bucket/1.png')
+        screenshot.should have_been_requested
+        result.should have_been_requested.times(2)
+      end
+
+      it 'handles errors on the third EOF error' do
+        screenshot = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/').
+          with(:query => {'url' => url, 'api_key' => api_key}).
+          to_return(:status => 302, :headers => { :location => 'http://api.pageclip.io/v1/screenshots/1' })
+        result = stub_request(:get, 'http://api.pageclip.io/v1/screenshots/1').
+          to_raise(EOFError).then.to_raise(EOFError).then.to_raise(EOFError)
+        Kernel.should_receive(:sleep).with(1)
+        Kernel.should_receive(:sleep).with(2)
+        Kernel.should_receive(:sleep).with(3)
+
+        expect { subject.screenshot(url) }.to raise_error(Pageclip::Error)
+        screenshot.should have_been_requested
+        result.should have_been_requested.times(4)
       end
     end
 
