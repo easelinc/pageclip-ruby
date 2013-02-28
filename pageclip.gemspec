@@ -17,6 +17,6 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
 
-  gem.add_development_dependency('rspec', ["~> 2.12.0"])
+  gem.add_development_dependency('rspec', ["~> 2.13.0"])
   gem.add_development_dependency('webmock', ["~> 1.9.3"])
 end
