@@ -44,7 +44,17 @@ module Pageclip
           request_options[:url] = url
 
           time = Benchmark.realtime do
-            response = get("#{@configuration.api_endpoint}/v1/screenshots/", request_options)
+            begin
+              response = get("#{@configuration.api_endpoint}/v1/screenshots/", request_options)
+            rescue EOFError
+              if attempt = ( attempt || 1) and attempt <= 3
+                Kernel.sleep(attempt)
+                attempt += 1
+                retry
+              else
+                raise Pageclip::ServiceUnavailableError
+              end
+            end
           end
 
           if response.code == "403"
@@ -62,6 +72,8 @@ module Pageclip
                   Kernel.sleep(attempt)
                   attempt += 1
                   retry
+                else
+                  raise Pageclip::ServiceUnavailableError
                 end
               end
             end
