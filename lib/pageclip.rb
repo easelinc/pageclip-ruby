@@ -46,7 +46,7 @@ module Pageclip
           time = Benchmark.realtime do
             begin
               response = get("#{@configuration.api_endpoint}/v1/screenshots/", request_options)
-            rescue EOFError, Errno::ETIMEDOUT
+            rescue EOFError, Errno::ETIMEDOUT, Errno::ECONNREFUSED
               if attempt = ( attempt || 1) and attempt <= 3
                 Kernel.sleep(attempt)
                 attempt += 1
@@ -67,7 +67,7 @@ module Pageclip
             time += Benchmark.realtime do
               begin
                 response = get(response['location'])
-              rescue EOFError, Errno::ETIMEDOUT
+              rescue EOFError, Errno::ETIMEDOUT, Errno::ECONNREFUSED
                 if attempt = ( attempt || 1) and attempt <= 3
                   Kernel.sleep(attempt)
                   attempt += 1
